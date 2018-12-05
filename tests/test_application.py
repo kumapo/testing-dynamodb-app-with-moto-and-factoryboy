@@ -1,7 +1,7 @@
 import pytest
 
-def test_post_chats(mocked_table, client):
-	res = client.post('/messages')
+def test_post_chats(mocked_client):
+	res = mocked_client.post('/messages')
 	assert res.json is not None
 
 def test_get_chat_given_id(client):
