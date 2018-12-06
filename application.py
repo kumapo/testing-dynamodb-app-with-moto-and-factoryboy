@@ -7,22 +7,35 @@ from boto3.dynamodb.conditions import Attr
 
 app = flask.Flask(__name__)
 
-@app.route('/messages', methods=['POST'])
-def post_messages():
-	chat = {
-		'id': str(uuid.uuid4()),
-		'message_id': str(uuid.uuid4()),
-		'message': 'Hello. World!',
-		'message_date': datetime.datetime.utcnow().isoformat(),
-		'username': 'bra'
-	}
+@app.route('/chats', methods=['POST'])
+def post_chat():
+	messages = flask.request.json if isinstance(flask.request.json, list) else [flask.request.json]
+
 	chats = boto3.resource('dynamodb').Table('chats')
-	chats.put_item(Item=chat)
-	return flask.make_response(json.dumps(chat), 200, {'Content-Type':'application/json'})
+	chat_id = str(uuid.uuid4())
+	items = []
+	for message in messages:
+		item = {
+			'id': chat_id,
+			'message_id': message.get('message_id'),
+			'message': message.get('message'),
+			'message_date': message.get('message_date'),
+			'username': message.get('username')
+		}
+		result = chats.put_item(Item=item)
+		if result.get('ResponseMetadata',{}).get('HTTPStatusCode') == 200:
+			items.append(item)
+
+	if 0 < len(items):
+		return flask.make_response(json.dumps(items), 
+								   200, {'Content-Type':'application/json'})
+	else:
+		return flask.make_response(json.dumps({'message':'something went wrong'}), 
+			                       500, {'Content-Type':'application/json'})
 
 @app.route('/chats/<id>', methods=['GET'])
 def get_messages(id):
 	chats = boto3.resource('dynamodb').Table('chats')
 	result = chats.scan(FilterExpression=Attr('id').eq(id))
-	messages = result.get('Items',[])
-	return flask.make_response(json.dumps(messages), 200, {'Content-Type':'application/json'})
+	items = result.get('Items',[])
+	return flask.make_response(json.dumps(items), 200, {'Content-Type':'application/json'})
