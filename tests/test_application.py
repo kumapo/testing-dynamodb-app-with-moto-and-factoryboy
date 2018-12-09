@@ -5,6 +5,7 @@ MESSAGES_IN_A_CHAT=5
 CHAT_ID='ff86c522-a08e-4a2c-a222-80e62c9c059b'
 
 def test_post_chats(mocked_client):
+	# fixtures
 	messages = [{
 		'message_id': '9f64eaf2-ecbe-41cb-ab88-b27234598fde',
 		'message': 'Where do you stay?',
@@ -20,5 +21,5 @@ def test_post_chats(mocked_client):
 	assert len(res.json) == 2
 
 def test_get_messages_given_id(mocked_client_having_messages_in_chat):
-	res = mocked_client_having_messages_in_chat.get('/chats/'+CHAT_ID)
+	res = mocked_client_having_messages_in_chat.get('/chats/ff86c522-a08e-4a2c-a222-80e62c9c059b')
 	assert res.json is not None
